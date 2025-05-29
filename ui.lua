@@ -1053,6 +1053,9 @@ function Library:GetBetterColor(Color: Color3, Add: number): Color3
 end
 
 function Library:GetDarkerColor(Color: Color3): Color3
+    if typeof(Color) ~= "Color3" then
+        Color = Color3.new(1, 1, 1)
+    end
     local H, S, V = Color:ToHSV()
     V = math.clamp(V / 2, 0, 1)
     return Color3.fromHSV(H, S, V)
@@ -2034,7 +2037,10 @@ do
 
             Type = "ColorPicker",
         }
-        ColorPicker.Hue, ColorPicker.Sat, ColorPicker.Vib = ColorPicker.Value:ToHSV()
+        local H, S, V = (ColorPicker.Value or Color3.new(1, 1, 1)):ToHSV()
+        ColorPicker.Hue = math.clamp(H, 0, 1)
+        ColorPicker.Sat = math.clamp(S, 0, 1)
+        ColorPicker.Vib = math.clamp(V, 0, 1)
 
         local Holder = New("TextButton", {
             BackgroundColor3 = ColorPicker.Value,
