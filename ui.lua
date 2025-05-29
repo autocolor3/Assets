@@ -144,7 +144,8 @@ local Templates = {
         FontFace = "Font",
         PlaceholderColor3 = function()
             local H, S, V = Library.Scheme.FontColor:ToHSV()
-            return Color3.fromHSV(H, S, V / 2)
+            V = math.clamp(V / 2, 0, 1)
+            return Color3.fromHSV(H, S, V)
         end,
         Text = "",
         TextColor3 = "FontColor",
@@ -1053,7 +1054,8 @@ end
 
 function Library:GetDarkerColor(Color: Color3): Color3
     local H, S, V = Color:ToHSV()
-    return Color3.fromHSV(H, S, V / 2)
+    V = math.clamp(V / 2, 0, 1)
+    return Color3.fromHSV(H, S, V)
 end
 
 function Library:GetKeyString(KeyCode: Enum.KeyCode)
