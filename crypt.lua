@@ -112,14 +112,6 @@ do
 	valium.decrypt = crypt_generalized("decrypt")
 end
 
-function valium.generatebytes(size: number): string
-	local randomBytes = table.create(size)
-	for i = 1, size do
-		randomBytes[i] = string.char(math.random(0, 255))
-	end
-	return valium.base64encode(table.concat(randomBytes))
-end
-
 function valium.generatekey()
 	return valium.generatebytes(32)
 end
