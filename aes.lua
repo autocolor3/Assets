@@ -759,10 +759,6 @@ local function init(key, txt, m, iv, s) -- Initializes functions if possible
 	key = convertType(key)
 	assert(#key == 16 or #key == 24 or #key == 32, "Key must be either 16, 24 or 32 bytes long")
 	txt = convertType(txt)
-	assert(
-		#txt % (s or 16) == 0,
-		"Input must be a multiple of " .. (if s then "segment size " .. s else "16") .. " bytes in length"
-	)
 	if m then
 		if type(iv) == "table" then
 			iv = table.clone(iv)
