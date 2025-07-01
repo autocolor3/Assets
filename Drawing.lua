@@ -756,10 +756,7 @@ local function setRenderProperty(object, property: string, value: any)
     object[property] = value
 end
 
-while not script_env.gethui do
-task.wait()
-end
-drawing_container.Parent = gethui()
+drawing_container.Parent = cloneref(game:GetService("CoreGui"))
 getgenv().drawing = drawing_lib
 getgenv().Drawing = drawing_lib
 getgenv().cleardrawcache = clearDrawCache
