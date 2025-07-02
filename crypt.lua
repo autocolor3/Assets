@@ -3,7 +3,7 @@ local base64 = loadstring(game:HttpGet("https://raw.githubusercontent.com/autoco
 local hashlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/autocolor3/Assets/refs/heads/main/hashlib.lua"))()
 local lz4 = loadstring(game:HttpGet("https://raw.githubusercontent.com/autocolor3/Assets/refs/heads/main/lz4.lua"))()
 
-local crypt = {}
+getgenv().crypt = {}
 
 do
     local b64 = {
@@ -24,13 +24,13 @@ do
             return if input == "" then input else buffer.tostring(base64.decode(buffer.fromstring(input)))
         end,
     }
-    crypt.base64 = b64
+    getgenv().crypt.base64 = b64
 
-    crypt.base64encode = b64.encode
-    crypt.base64_encode = b64.encode
+    getgenv().crypt.base64encode = b64.encode
+    getgenv().crypt.base64_encode = b64.encode
 
-    crypt.base64decode = b64.decode
-    crypt.base64_decode = b64.decode
+    getgenv().crypt.base64decode = b64.decode
+    getgenv().crypt.base64_decode = b64.decode
 end
 
 do
@@ -132,8 +132,8 @@ do
             return data, iv
         end
     end
-    crypt.encrypt = crypt_generalized("encrypt")
-    crypt.decrypt = crypt_generalized("decrypt")
+    getgenv().crypt.encrypt = crypt_generalized("encrypt")
+    getgenv().crypt.decrypt = crypt_generalized("decrypt")
 end
 
 function crypt.generatebytes(size: number): string
@@ -156,28 +156,3 @@ end
 function crypt.hmac(data: string, key: string, asBinary: boolean): string
     return hashlib.hmac(hashlib.sha512_256, data, key, asBinary)
 end
-
-getgenv().encrypt = crypt_generalized("encrypt")
-getgenv().decrypt = crypt_generalized("decrypt")
-getgenv().encode = base64encode
-getgenv().decode = base64decode
-getgenv().lz4compress = lz4compress
-getgenv().lz4decompress = lz4decompress  
-
-getgenv().crypt = crypt
-getgenv().base64 = b64
-getgenv().crypt.encrypt = crypt_generalized("encrypt")
-getgenv().crypt.decrypt = crypt_generalized("decrypt")
-getgenv().base64.encode = base64encode
-getgenv().base64.decode = base64decode
-getgenv().crypt.lz4compress = lz4compress
-getgenv().crypt.lz4decompress = lz4decompress  
-
-getgenv().crypt.generatekey = crypt.generatekey
-getgenv().generatekey = crypt.generatekey
-getgenv().crypt.hash = crypt.hash
-getgenv().hash = crypt.hash
-getgenv().crypt.hmac = crypt.hmac
-getgenv().hmac = crypt.hmac
-getgenv().crypt.generatebytes = crypt.generatebytes
-getgenv().generatebytes = crypt.generatebytes
