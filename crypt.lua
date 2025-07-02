@@ -92,7 +92,7 @@ do
                 mode = string.lower(mode)
                 mode = modes[mode]
             else
-                mode = modes.cbc -- Default
+                error("You must provide a mode.")
             end
 
             if iv then
