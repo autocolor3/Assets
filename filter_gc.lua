@@ -21,8 +21,9 @@ local info, find, insert = debug.getinfo, table.find, table.insert
 local constants, upvalues = debug.getconstants, debug.getupvalues
 
 local function filter_upvalues(func: Function, expected_upvalues: Table): boolean
+    if iscclosure(func) then return false end
     local func_upvalues = upvalues(func)
-    if #func_upvalues == 0 then return false end 
+    if #func_upvalues == 0 then return false end
 
     for _, value in pairs(expected_upvalues) do 
         if find(func_upvalues, value) then 
@@ -33,7 +34,7 @@ local function filter_upvalues(func: Function, expected_upvalues: Table): boolea
 end 
 
 local function filter_constants(func: Function, expected_constants: Table): boolean
-    if iscclosure(func) then return false end 
+    if iscclosure(func) then return false end
     local func_constants = constants(func)
     if #func_constants == 0 then return false end
 
@@ -55,11 +56,11 @@ local function filtergc(
     if string.lower(filter_type) == "function" then
         local opts = filter_options or {}
         local name, hash = opts.Name, opts.Hash
-        local constants, upvalues = opts.Constants, opts.Upvalues
+        local consts, ups = opts.Constants, opts.Upvalues
         local ignore_executor = opts.IgnoreExecutor
         if ignore_executor == nil then ignore_executor = true end
 
-        local no_filters = not name and not hash and not constants and not upvalues
+        local no_filters = not name and not hash and not consts and not ups
 
         for _, v in pairs(getgc()) do
             if typeof(v) ~= "function" then continue end
@@ -73,8 +74,8 @@ local function filtergc(
             else
                 if name and info.name == name then matches = true end
                 if hash and getfunctionhash and getfunctionhash(v) == hash then matches = true end
-                if constants and filter_constants(v, constants) then matches = true end
-                if upvalues and filter_upvalues(v, upvalues) then matches = true end
+                if ups and filter_upvalues(v, ups) then matches = true end
+                if consts and filter_constants(v, consts) then matches = true end
             end
 
             if matches then
@@ -118,6 +119,9 @@ local function filtergc(
                 if return_one then break end
             end
         end
+
+    else
+        return {"not a func", "not a table"}
     end
 
     return return_one and output[1] or output
