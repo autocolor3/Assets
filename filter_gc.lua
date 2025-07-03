@@ -1,3 +1,6 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
 type FunctionFilterOptions = {
     Name: string?, 
     Hash: string?,
@@ -192,4 +195,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
         return not return_one and output or output[1]
     end 
 end 
+
+
+
 getgenv().filtergc = newcclosure(filtergc)
