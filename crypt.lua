@@ -139,7 +139,7 @@ do
     getgenv().crypt.decrypt = crypt_generalized("decrypt")
 end
 
-function crypt.generatebytes(size: number): string
+getgenv().crypt.generatebytes = function(size: number): string
     local randomBytes = table.create(size)
     for i = 1, size do
         randomBytes[i] = string.char(math.random(0, 255))
@@ -148,14 +148,14 @@ function crypt.generatebytes(size: number): string
     return crypt.base64encode(table.concat(randomBytes))
 end
 
-function crypt.generatekey()
+getgenv().crypt.generatekey = function()
     return crypt.generatebytes(32)
 end
 
-function crypt.hash(data: string, algorithm: string): string
+getgenv().crypt.hash = function(data: string, algorithm: string): string
     return hashlib[string.gsub(algorithm, "-", "_")](data)
 end
 
-function crypt.hmac(data: string, key: string, asBinary: boolean): string
+getgenv().crypt.hmac = function(data: string, key: string, asBinary: boolean): string
     return hashlib.hmac(hashlib.sha512_256, data, key, asBinary)
 end
