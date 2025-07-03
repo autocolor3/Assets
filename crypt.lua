@@ -25,7 +25,7 @@ do
         end,
     }
     getgenv().crypt.base64 = b64
-
+    getgenv().base64 = b64
     getgenv().crypt.base64encode = b64.encode
     getgenv().crypt.base64_encode = b64.encode
     getgenv().base64_encode = b64.encode
