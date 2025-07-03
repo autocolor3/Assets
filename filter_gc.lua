@@ -109,8 +109,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
         local specific_values = filter_options.Values
         local specific_pairs = filter_options.KeyValuePairs
         local specific_metatable = filter_options.Metatable
-        local max_depth = 1 -- increase if needed
-
+        local max_depth = 1
         local nothing_provided = not specific_keys and not specific_values and not specific_pairs and not specific_metatable
 
         local function check_table(tbl: Table, depth: number)
