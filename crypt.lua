@@ -28,9 +28,10 @@ do
 
     getgenv().crypt.base64encode = b64.encode
     getgenv().crypt.base64_encode = b64.encode
-
+    getgenv().base64_encode = b64.encode
     getgenv().crypt.base64decode = b64.decode
     getgenv().crypt.base64_decode = b64.decode
+    getgenv().base64_decode = b64.decode
 end
 
 do
