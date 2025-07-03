@@ -1,6 +1,3 @@
---[[
-	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
-]]
 type FunctionFilterOptions = {
     Name: string?, 
     Hash: string?,
@@ -23,16 +20,13 @@ type ReturnType = Function | Table
 local info, find, insert = debug.getinfo, table.find, table.insert
 local constants, upvalues = debug.getconstants, debug.getupvalues
 
-
 local function filter_upvalues(func: Function, expected_upvalues: Table, ignore_executor: boolean): boolean
-    
     local func_upvalues = upvalues(func)
     if #func_upvalues == 0 then return false end 
 
     local found = false 
     for _, value in pairs(expected_upvalues) do 
         if not find(func_upvalues, value) then continue end 
-
         found = true 
         break  
     end 
@@ -49,7 +43,6 @@ local function filter_constants(func: Function, expected_constants: Table, ignor
     local found = false 
     for _, value in pairs(expected_constants) do 
         if not find(func_constants, value) then continue end 
-        
         found = true 
         break
     end 
@@ -74,7 +67,6 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
 
         for _, value in pairs(getgc()) do 
             if typeof(value) ~= "function" or iscclosure(value) then continue end  
-            
             if ignore_executor and isexecutorclosure(value) then continue end 
             
             local function_info = info(value)
@@ -106,7 +98,6 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             if return_one then
                 break
             end
- 
         end 
 
         return not return_one and output or output[1]
@@ -118,7 +109,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
         local specific_values = filter_options.Values
         local specific_pairs = filter_options.KeyValuePairs
         local specific_metatable = filter_options.Metatable
-        local max_depth = 1 -- increase it if you want, I dont recommend it tho (will either lag or crash completly)
+        local max_depth = 1 -- increase if needed
 
         local nothing_provided = not specific_keys and not specific_values and not specific_pairs and not specific_metatable
 
@@ -128,7 +119,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             end
 
             if nothing_provided then 
-                insert(output, tbl)
+                return true
             end 
 
             local matches = false
@@ -174,28 +165,20 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
                 end
             end
 
-            return not nothing_provided and matches or nothing_provided
+            return matches
         end
 
         for _, tbl in pairs(getgc(true)) do 
-            if typeof(tbl) ~= "table" then 
-                continue 
-            end 
+            if typeof(tbl) ~= "table" then continue end 
             local is_not_self = tbl ~= specific_keys and tbl ~= specific_values and tbl ~= specific_pairs
-            if not is_not_self then 
-                continue 
-            end 
+            if not is_not_self then continue end 
             if check_table(tbl, 1) then
                 insert(output, tbl)
-                if return_one then
-                    break
-                end
+                if return_one then break end
             end
         end
         return not return_one and output or output[1]
     end 
 end 
-
-
 
 getgenv().filtergc = newcclosure(filtergc)
