@@ -1,22 +1,3 @@
-type FunctionFilterOptions = {
-    Name: string?, 
-    Hash: string?,
-    IgnoreExecutor: boolean?,
-    Constants: { any }?,
-    Upvalues: { any }?,
-}
-
-type TableFilterOptions = {
-    Metatable: { any }?,
-    Keys: { any }?,
-    Values: { any }?,
-    KeyValuePairs: { [any]: any }?,
-}
-
-type Function = ((...any) -> (...any))
-type Table = ({ [any]: any })
-type ReturnType = Function | Table
-
 local info, find, insert = debug.getinfo, table.find, table.insert
 local constants, upvalues = debug.getconstants, debug.getupvalues
 
@@ -127,4 +108,4 @@ local function filtergc(
     return return_one and output[1] or output
 end
 
-getgenv().filtergc = newcclosure(filtergc)
+getgenv().filtergc = filtergc
