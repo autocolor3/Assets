@@ -197,3 +197,5 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
         return not return_one and gc_cache or gc_cache[1]
     end 
 end 
+
+getgenv().filtergc = newcclosure(filtergc)
