@@ -46,7 +46,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             if value == nil or typeof(value) ~= "function" then continue end
             
             if nothing_provided then 
-                insert(output, value)
+                table.insert(output, value)
                 if return_one then
                     break
                 end
@@ -80,7 +80,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             end 
 
             if matches then
-                insert(output, value)
+                table.insert(output, value)
                 if return_one then
                     break
                 end
@@ -91,7 +91,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             local fallback = {}
             for _, value in pairs(gc_cache) do
                 if typeof(value) == "function" then
-                    insert(fallback, value)
+                    table.insert(fallback, value)
                 end
             end
             return not return_one and fallback or fallback[1]
@@ -182,7 +182,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             end 
             
             if nothing_provided then
-                insert(output, tbl)
+                table.insert(output, tbl)
                 if return_one then
                     break
                 end
@@ -195,7 +195,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             end 
 
             if check_table(tbl, 1, {}) then
-                insert(output, tbl)
+                table.insert(output, tbl)
                 if return_one then
                     break
                 end
