@@ -3,7 +3,7 @@ local function filter_upvalues(func: Function, expected_upvalues: Table, ignore_
     if not func_upvalues or #func_upvalues == 0 then return false end 
 
     for _, value in pairs(expected_upvalues or {}) do 
-        if value ~= nil and find(func_upvalues, value) then 
+        if value ~= nil and table.find(func_upvalues, value) then 
             return true
         end 
     end 
@@ -18,7 +18,7 @@ local function filter_constants(func: Function, expected_constants: Table, ignor
     end
 
     for _, value in pairs(expected_constants or {}) do 
-        if value ~= nil and find(func_constants, value) then 
+        if value ~= nil and table.find(func_constants, value) then 
             return true
         end
     end 
@@ -132,7 +132,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             local matches = false
             if specific_keys then
                 for key, _ in pairs(tbl) do 
-                    if key ~= nil and find(specific_keys, key) then 
+                    if key ~= nil and table.find(specific_keys, key) then 
                         matches = true 
                         break 
                     end 
@@ -141,7 +141,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
 
             if not matches and specific_values then
                 for _, value in pairs(tbl) do 
-                    if value ~= nil and find(specific_values, value) then 
+                    if value ~= nil and table.find(specific_values, value) then 
                         matches = true 
                         break
                     end 
