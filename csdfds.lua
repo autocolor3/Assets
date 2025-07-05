@@ -1,23 +1,59 @@
-local last_call_time = 0
-local call_count = 0
-local max_calls_before_yield = 3
-local yield_time = 0.2 -- seconds to yield after threshold
+type FunctionFilterOptions = {
+    Name: string?, 
+    Hash: string?,
+    IgnoreExecutor: boolean?,
+    Constants: { any }?,
+    Upvalues: { any }?,
+}
+
+type TableFilterOptions = {
+    Metatable: { any }?,
+    Keys: { any }?,
+    Values: { any }?,
+    KeyValuePairs: { [any]: any }?,
+}
+
+type Function = ((...any) -> (...any))
+type Table = ({ [any]: any })
+type ReturnType = Function | Table
+
+local info, find, insert = debug.getinfo, table.find, table.insert
+local constants, upvalues = debug.getconstants, debug.getupvalues
+
+local gc_cache = getgc(true)
+
+local function filter_upvalues(func: Function, expected_upvalues: Table, ignore_executor: boolean): boolean
+    local func_upvalues = upvalues(func)
+    if #func_upvalues == 0 then return false end 
+
+    for _, value in pairs(expected_upvalues) do 
+        if find(func_upvalues, value) then 
+            return true
+        end 
+    end 
+    return false
+end 
+
+local function filter_constants(func: Function, expected_constants: Table, ignore_executor: boolean): boolean
+    if iscclosure(func) then return false end 
+    local func_constants = constants(func)
+    if #func_constants == 0 then 
+        return false 
+    end
+
+    for _, value in pairs(expected_constants) do 
+        if find(func_constants, value) then 
+            return true
+        end 
+    end 
+    return false
+end 
+
+local function refresh_gc_cache()
+    gc_cache = getgc(true)
+end
 
 local function filtergc(filter_type: "function" | "table", filter_options: FunctionFilterOptions | TableFilterOptions, return_one: boolean): ReturnType? | { ReturnType }
-    local current_time = tick() -- or os.clock(), or time() in Roblox
-    if current_time - last_call_time < 1 then
-        call_count = call_count + 1
-    else
-        call_count = 1
-    end
-    last_call_time = current_time
-    
-    if call_count > max_calls_before_yield then
-        -- Yield to prevent crashing from rapid consecutive calls
-        task.wait(yield_time)
-        call_count = 0 -- reset after yield to avoid chaining delays
-    end
-
     gc_cache = getgc(true)
     
     if not filter_options then
@@ -132,7 +168,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
                     if find(specific_values, value) then 
                         matches = true 
                         break 
-                    end
+                    end 
                 end
             end
 
@@ -199,3 +235,4 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
 end 
 
 getgenv().filtergc = newcclosure(filtergc)
+getgenv().refresh_gc_cache = newcclosure(refresh_gc_cache)
