@@ -1,33 +1,9 @@
-type FunctionFilterOptions = {
-    Name: string?, 
-    Hash: string?,
-    IgnoreExecutor: boolean?,
-    Constants: { any }?,
-    Upvalues: { any }?,
-}
-
-type TableFilterOptions = {
-    Metatable: { any }?,
-    Keys: { any }?,
-    Values: { any }?,
-    KeyValuePairs: { [any]: any }?,
-}
-
-type Function = ((...any) -> (...any))
-type Table = ({ [any]: any })
-type ReturnType = Function | Table
-
-local info, find, insert = debug.getinfo, table.find, table.insert
-local constants, upvalues = debug.getconstants, debug.getupvalues
-
-local gc_cache = getgc(true)
-
 local function filter_upvalues(func: Function, expected_upvalues: Table, ignore_executor: boolean): boolean
     local func_upvalues = upvalues(func)
-    if #func_upvalues == 0 then return false end 
+    if not func_upvalues or #func_upvalues == 0 then return false end 
 
-    for _, value in pairs(expected_upvalues) do 
-        if find(func_upvalues, value) then 
+    for _, value in pairs(expected_upvalues or {}) do 
+        if value ~= nil and find(func_upvalues, value) then 
             return true
         end 
     end 
@@ -37,29 +13,23 @@ end
 local function filter_constants(func: Function, expected_constants: Table, ignore_executor: boolean): boolean
     if iscclosure(func) then return false end 
     local func_constants = constants(func)
-    if #func_constants == 0 then 
+    if not func_constants or #func_constants == 0 then 
         return false 
     end
 
-    for _, value in pairs(expected_constants) do 
-        if find(func_constants, value) then 
+    for _, value in pairs(expected_constants or {}) do 
+        if value ~= nil and find(func_constants, value) then 
             return true
-        end 
+        end
     end 
     return false
 end 
 
-local function refresh_gc_cache()
-    gc_cache = getgc(true)
-end
-
 local function filtergc(filter_type: "function" | "table", filter_options: FunctionFilterOptions | TableFilterOptions, return_one: boolean): ReturnType? | { ReturnType }
     gc_cache = getgc(true)
     
-    if not filter_options then
-        filter_options = {}
-    end
-    
+    filter_options = filter_options or {}
+
     if string.lower(filter_type) == "function" then 
         local output = {}
 
@@ -68,16 +38,12 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
         local specific_constants = filter_options.Constants 
         local specific_upvalues = filter_options.Upvalues
         local ignore_executor = filter_options.IgnoreExecutor
-        ignore_executor = true
+        ignore_executor = ignore_executor ~= false -- default true
                         
-        if ignore_executor ~= false then 
-            ignore_executor = true 
-        end
-
         local nothing_provided = not specific_name and not specific_constants and not specific_upvalues and not specific_hash 
 
         for _, value in pairs(gc_cache) do 
-            if typeof(value) ~= "function" then continue end
+            if value == nil or typeof(value) ~= "function" then continue end
             
             if nothing_provided then 
                 insert(output, value)
@@ -91,7 +57,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             if ignore_executor and isexecutorclosure(value) then continue end 
             
             local function_info = info(value)
-            local name = function_info.name
+            local name = function_info and function_info.name or nil
 
             local matches = true
 
@@ -104,7 +70,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             end 
 
             if matches and specific_upvalues then
-                if function_info.nups == 0 or not filter_upvalues(value, specific_upvalues, ignore_executor) then 
+                if not function_info or function_info.nups == 0 or not filter_upvalues(value, specific_upvalues, ignore_executor) then 
                     matches = false
                 end
             end
@@ -144,10 +110,20 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
 
         local nothing_provided = not specific_keys and not specific_values and not specific_pairs and not specific_metatable
 
-        local function check_table(tbl: Table, depth: number)
+        local function check_table(tbl: Table, depth: number, visited: Table)
             if depth > max_depth then
                 return false 
             end
+
+            if not tbl or type(tbl) ~= "table" then
+                return false
+            end
+            
+            if visited[tbl] then
+                -- recursion detected, stop here
+                return false
+            end
+            visited[tbl] = true
 
             if nothing_provided then 
                 return true
@@ -156,7 +132,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             local matches = false
             if specific_keys then
                 for key, _ in pairs(tbl) do 
-                    if find(specific_keys, key) then 
+                    if key ~= nil and find(specific_keys, key) then 
                         matches = true 
                         break 
                     end 
@@ -165,9 +141,9 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
 
             if not matches and specific_values then
                 for _, value in pairs(tbl) do 
-                    if find(specific_values, value) then 
+                    if value ~= nil and find(specific_values, value) then 
                         matches = true 
-                        break 
+                        break
                     end 
                 end
             end
@@ -178,7 +154,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
 
             if not matches and specific_pairs then
                 for key, value in pairs(tbl) do     
-                    if specific_pairs[key] == value then
+                    if key ~= nil and value ~= nil and specific_pairs[key] == value then
                         matches = true
                         break
                     end
@@ -187,8 +163,8 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
 
             if not matches then
                 for _, v in pairs(tbl) do
-                    if typeof(v) == "table" then
-                        matches = check_table(v, depth + 1)
+                    if type(v) == "table" then
+                        matches = check_table(v, depth + 1, visited)
                         if matches then
                             break
                         end
@@ -196,11 +172,12 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
                 end
             end
 
+            visited[tbl] = nil
             return matches
         end
 
         for _, tbl in pairs(gc_cache) do 
-            if typeof(tbl) ~= "table" then 
+            if tbl == nil or type(tbl) ~= "table" then 
                 continue 
             end 
             
@@ -216,7 +193,8 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             if not is_not_self then 
                 continue 
             end 
-            if check_table(tbl, 1) then
+
+            if check_table(tbl, 1, {}) then
                 insert(output, tbl)
                 if return_one then
                     break
@@ -233,6 +211,3 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
         return not return_one and gc_cache or gc_cache[1]
     end 
 end 
-
-getgenv().filtergc = newcclosure(filtergc)
-getgenv().refresh_gc_cache = newcclosure(refresh_gc_cache)
