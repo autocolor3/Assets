@@ -1,5 +1,5 @@
 local function filter_upvalues(func: Function, expected_upvalues: Table, ignore_executor: boolean): boolean
-    local func_upvalues = upvalues(func)
+    local func_upvalues = debug.getupvalues(func)
     if not func_upvalues or #func_upvalues == 0 then return false end 
 
     for _, value in pairs(expected_upvalues or {}) do 
@@ -12,7 +12,7 @@ end
 
 local function filter_constants(func: Function, expected_constants: Table, ignore_executor: boolean): boolean
     if iscclosure(func) then return false end 
-    local func_constants = constants(func)
+    local func_constants = debug.getconstants(func)
     if not func_constants or #func_constants == 0 then 
         return false 
     end
@@ -56,7 +56,7 @@ local function filtergc(filter_type: "function" | "table", filter_options: Funct
             if iscclosure(value) then continue end  
             if ignore_executor and isexecutorclosure(value) then continue end 
             
-            local function_info = info(value)
+            local function_info = debug.getinfo(value)
             local name = function_info and function_info.name or nil
 
             local matches = true
